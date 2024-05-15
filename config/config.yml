@@ -1,0 +1,38 @@
+server:
+  domain: mall
+  version: 1.0
+  port: 4000
+
+datasource:
+  driverName: mysql
+  host: localhost
+  port: 3306
+  username: asus
+  password: "123456"
+  database: mall_demo
+  charset: utf8mb4
+
+redis:
+  address: localhost
+  password: "123456"
+  dbName: 2
+
+rabbitmq:
+  head: amqp
+  address: localhost
+  username: guest
+  password: guest
+
+jwt:
+  signKey: mall-demo
+
+path:
+  hostPath: http://127.0.0.1:4000
+  avatarPath: /static/imgs/avatar/
+  productPath: /static/imgs/products/
+
+email:
+  validEmail: https://localhost:4000/#/valid/email/
+  smtpHost: smtp.qq.com
+  smtpEmail: 2496305505@qq.com
+  smtpPass: uwurlpnehqkodjhb
