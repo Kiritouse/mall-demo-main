@@ -7,16 +7,23 @@ import (
 	"mall-demo/internal/model"
 	"mall-demo/internal/pkg/e"
 	"mall-demo/internal/pkg/res"
-	"mall-demo/internal/pkg/util"
 	"mall-demo/internal/vo"
 	"strconv"
 )
 
-type AddressService struct {
+type CartService struct {
 }
 
-// CreateAddress 创建地址信息
-func (*AddressService) CreateAddress(ctx *gin.Context, request dto.AddressRequest) res.Response {
+func (*CartService) CreateCart(ctx *gin.Context, request dto.CartRequest) res.Response {
+	var productDao dao.ProductDao
+	_, err := productDao.GetProductByID(request.ProductID)
+	if err != nil {
+		return res.Response{
+			Code: e.Error,
+			Data: nil,
+			Msg:  "商品不存在",
+		}
+	}
 	value, exists := ctx.Get("user")
 	if !exists {
 		return res.Response{
@@ -27,36 +34,36 @@ func (*AddressService) CreateAddress(ctx *gin.Context, request dto.AddressReques
 	}
 	user := value.(*model.User)
 
-	address := &model.Address{
-		UserID:  user.ID,
-		Name:    request.Name,
-		Phone:   request.Phone,
-		Address: request.Address,
+	cart := &model.Cart{
+		UserID:    user.ID,
+		ProductID: request.ProductID,
+		BossID:    request.BossID,
+		Num:       request.Num,
+		MaxNum:    100,
+		Check:     false,
 	}
 
-	var addressDao dao.AddressDao
-	err := addressDao.CreateAddress(address)
+	var cartDao dao.CartDao
+	err = cartDao.CreateCart(cart)
 	if err != nil {
-		util.Loggers.Errorln(err)
 		return res.Response{
 			Code: e.Error,
 			Data: nil,
-			Msg:  "地址创建失败",
+			Msg:  "加入购物车失败",
 		}
 	}
 	return res.Response{
 		Code: e.Success,
 		Data: nil,
-		Msg:  "地址创建成功",
+		Msg:  "加入购物车成功",
 	}
+
 }
 
-// GetAddress 查看地址信息
-func (*AddressService) GetAddress(ctx *gin.Context) res.Response {
+func (*CartService) ShowCart(ctx *gin.Context) res.Response {
 	id := ctx.Param("id")
-	addressID, err := strconv.Atoi(id)
+	cartID, err := strconv.Atoi(id)
 	if err != nil {
-		util.Loggers.Errorln(err)
 		return res.Response{
 			Code: e.InvalidParam,
 			Data: nil,
@@ -72,25 +79,24 @@ func (*AddressService) GetAddress(ctx *gin.Context) res.Response {
 		}
 	}
 	user := value.(*model.User)
-	var addressDao dao.AddressDao
-	address, err := addressDao.GetAddressByID(uint(addressID), user.ID)
+
+	var cartDao dao.CartDao
+	cart, err := cartDao.GetCartByID(uint(cartID), user.ID)
 	if err != nil {
-		util.Loggers.Errorln(err)
 		return res.Response{
 			Code: e.Error,
 			Data: nil,
-			Msg:  "地址查询失败",
+			Msg:  "商品不存在",
 		}
 	}
 	return res.Response{
 		Code: e.Success,
-		Data: vo.BuildAddressResponse(address),
-		Msg:  "地址查询成功",
+		Data: vo.BuildCartResponse(cart),
+		Msg:  "查询成功",
 	}
 }
 
-// ListAddress 查看所有地址
-func (*AddressService) ListAddress(ctx *gin.Context) res.Response {
+func (*CartService) ListCart(ctx *gin.Context) res.Response {
 	value, exists := ctx.Get("user")
 	if !exists {
 		return res.Response{
@@ -101,29 +107,26 @@ func (*AddressService) ListAddress(ctx *gin.Context) res.Response {
 	}
 	user := value.(*model.User)
 
-	var addressDao dao.AddressDao
-	addresses, err := addressDao.ListAddressByUserID(user.ID)
+	var cartDao dao.CartDao
+	cartList, err := cartDao.LisCartByUserID(user.ID)
 	if err != nil {
-		util.Loggers.Errorln(err)
 		return res.Response{
 			Code: e.Error,
 			Data: nil,
-			Msg:  "地址查询失败",
+			Msg:  "商品不存在",
 		}
 	}
 	return res.Response{
 		Code: e.Success,
-		Data: res.BuildDataList(vo.BuildAddressResponseList(addresses), int64(len(addresses))),
-		Msg:  "地址查询成功",
+		Data: res.BuildDataList(vo.BuildCartResponseList(cartList), int64(len(cartList))),
+		Msg:  "查询成功",
 	}
 }
 
-// UpdateAddress 修改地址信息
-func (*AddressService) UpdateAddress(ctx *gin.Context, request dto.AddressRequest) res.Response {
+func (*CartService) UpdateCart(ctx *gin.Context, request dto.CartRequest) res.Response {
 	id := ctx.Param("id")
-	addressID, err := strconv.Atoi(id)
+	cartID, err := strconv.Atoi(id)
 	if err != nil {
-		util.Loggers.Errorln(err)
 		return res.Response{
 			Code: e.InvalidParam,
 			Data: nil,
@@ -139,34 +142,27 @@ func (*AddressService) UpdateAddress(ctx *gin.Context, request dto.AddressReques
 		}
 	}
 	user := value.(*model.User)
-	address := &model.Address{
-		Name:    request.Name,
-		Phone:   request.Phone,
-		Address: request.Address,
-	}
-	var addressDao dao.AddressDao
-	err = addressDao.UpdateAddressByID(uint(addressID), user.ID, address)
+
+	var cartDao dao.CartDao
+	err = cartDao.UpdateCartNumByID(uint(cartID), user.ID, request.Num)
 	if err != nil {
-		util.Loggers.Errorln(err)
 		return res.Response{
 			Code: e.Error,
 			Data: nil,
-			Msg:  "地址修改失败",
+			Msg:  "修改失败",
 		}
 	}
 	return res.Response{
 		Code: e.Success,
 		Data: nil,
-		Msg:  "地址修改成功",
+		Msg:  "修改成功",
 	}
 }
 
-// DeleteAddress 删除地址信息
-func (*AddressService) DeleteAddress(ctx *gin.Context) res.Response {
+func (*CartService) DeleteCart(ctx *gin.Context) res.Response {
 	id := ctx.Param("id")
-	addressID, err := strconv.Atoi(id)
+	cartID, err := strconv.Atoi(id)
 	if err != nil {
-		util.Loggers.Errorln(err)
 		return res.Response{
 			Code: e.InvalidParam,
 			Data: nil,
@@ -182,19 +178,19 @@ func (*AddressService) DeleteAddress(ctx *gin.Context) res.Response {
 		}
 	}
 	user := value.(*model.User)
-	var addressDao dao.AddressDao
-	err = addressDao.DeleteAddressByID(uint(addressID), user.ID)
+
+	var cartDao dao.CartDao
+	err = cartDao.DeleteCartByID(uint(cartID), user.ID)
 	if err != nil {
-		util.Loggers.Errorln(err)
 		return res.Response{
 			Code: e.Error,
 			Data: nil,
-			Msg:  "地址删除失败",
+			Msg:  "商品删除失败",
 		}
 	}
 	return res.Response{
 		Code: e.Success,
 		Data: nil,
-		Msg:  "地址删除成功",
+		Msg:  "商品删除成功",
 	}
 }
