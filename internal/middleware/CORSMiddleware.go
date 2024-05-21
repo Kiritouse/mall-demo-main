@@ -12,8 +12,8 @@ func CORSMiddleware() gin.HandlerFunc {
 
 		if origin != "" {
 			// 必填，接收指定域的请求可以使用*不加以限制，但是不安全，且不允许XMLHttpRequest携带Cookie
-			// ctx.Writer.Header().Set("Access-Control-Allow-Origin","*")
-			ctx.Writer.Header().Set("Access-Control-Allow-Origin", ctx.GetHeader("Origin"))
+			ctx.Writer.Header().Set("Access-Control-Allow-Origin","*")
+			// ctx.Writer.Header().Set("Access-Control-Allow-Origin", ctx.GetHeader("Origin"))
 			// 必填，设置服务器支持的所有跨域请求的方法
 			ctx.Writer.Header().Set("Access-Control-Allow-Methods", "POST,GET,PUT,DELETE,OPTIONS")
 			// 如果浏览器请求包括Access-Control-Request-Headers字段，则Access-Control-Allow-Headers字段是必需的。
