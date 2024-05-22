@@ -73,7 +73,7 @@ func ValidEmail(ctx *gin.Context) {
 // ShowMoney 显示金额
 func ShowMoney(ctx *gin.Context) {
 	var userService service.UserService
-	key := ctx.PostForm("Key")
+	key := "1234567887654321"
 	response := userService.ShowMoney(ctx, key)
 	ctx.JSON(http.StatusOK, response)
 }
