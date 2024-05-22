@@ -1,16 +1,29 @@
 package router
 
 import (
+	"github.com/gin-contrib/cors"
 	api "mall-demo/api/v1"
 	"mall-demo/internal/middleware"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
 func NewRouter() *gin.Engine {
 	r := gin.Default()
-	r.Use(middleware.CORSMiddleware())
+	//r.Use(middleware.CORSMiddleware())
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:  []string{"*"},
+		AllowMethods:  []string{"*"},
+		AllowHeaders:  []string{"*"},
+		ExposeHeaders: []string{"*"},
+		CustomSchemas: []string{"*"},
+
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
+
 	r.StaticFS("/static", http.Dir("./static")) // 加载静态资源
 	v1 := r.Group("api/v1")
 	{
@@ -33,6 +46,7 @@ func NewRouter() *gin.Engine {
 			authed.POST("user/mail", api.SendEmail)
 			// 验证邮件
 			authed.POST("user/valid/mail", api.ValidEmail)
+
 			// 显示金额
 			authed.POST("money", api.ShowMoney)
 
@@ -69,7 +83,34 @@ func NewRouter() *gin.Engine {
 			authed.PUT("cart/:id", api.UpdateCart)
 			// 删除购物车商品
 			authed.DELETE("cart/:id", api.DeleteCart)
+
+			// 创建订单
+			authed.POST("order", api.CreateOrder)
+			// 展示订单
+			authed.GET("order", api.ListOrder)
+			// 查看订单
+			authed.GET("order/:id", api.ShowOrder)
+			// 删除订单
+			authed.DELETE("order/:id", api.DeleteOrder)
+
+			// 支付订单
+			authed.POST("pay", api.OrderPay)
+
+			// 商品秒杀
+			// 录入秒杀商品信息
+			authed.POST("secKill/add", api.AddSecKillProduct)
+			// 秒杀商品
+			// 无锁 出现超卖
+			authed.POST("secKill/withoutLock", api.SecKillWithoutLock)
+			// 互斥锁秒杀 正常
+			authed.POST("secKill/withMutexLock", api.SecKillWithMutexLock)
+			// 悲观锁/排他锁秒杀 正常
+			authed.POST("secKill/withXLock", api.SecKillWithXLock)
+			// 悲观锁/排他锁秒杀 正常
+			authed.POST("secKill/withRedis", api.SecKillWithRedis)
+
 		}
+
 		// 轮播图模块操作
 		v1.GET("/carousel", api.ListCarousel)
 
