@@ -5,7 +5,7 @@ server:
 
 datasource:
   driverName: mysql
-  host: localhost
+  host: 172.31.167.124
   port: 3306
   username: asus
   password: "123456"
@@ -13,13 +13,13 @@ datasource:
   charset: utf8mb4
 
 redis:
-  address: localhost
+  address: 172.31.167.124:6379
   password: "123456"
   dbName: 2
 
 rabbitmq:
   head: amqp
-  address: localhost
+  address: 172.31.167.124
   username: guest
   password: guest
 
